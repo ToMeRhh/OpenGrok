@@ -224,6 +224,7 @@ public abstract class JFlexXref {
     public void write(Writer out) throws IOException {
         this.out = out;
         writeSymbolTable();
+		addSymbolTitles();
         setLineNumber(0);
         startNewLine();
         while (yylex() != yyeof) { // NOPMD while statement intentionally empty
@@ -307,6 +308,100 @@ public abstract class JFlexXref {
         }
         /* no LF intentionally - xml is whitespace aware ... */
         out.append("];} /* ]]> */</script>");
+    }
+
+    private void addSymbolTitles() throws IOException {
+        out.append("<script type=\"text/javascript\">/* <![CDATA[ */\n");
+		/******************************
+		This is here temporarly - i'm working on adding this script natively to the java parser"
+		*******************************/
+		out.append("(function CREATE_TOOLTIP_TITLES() {"
+		out.append("    src = document.getElementById(\"src\").childNodes[1].childNodes;"
+		out.append("    elements = Array.prototype.slice.call(src, 0);"
+		out.append("    lines = elements.filter(function(e) {"
+		out.append("        return (e.className === \"l\" || e.className === \"hl\");"
+		out.append("    });"
+		out.append("    function get_text_between_lines(n, m) {"
+		out.append("        start_line = lines.filter(function(e) {"
+		out.append("            return (e.getAttribute(\"name\") == n);"
+		out.append("        });"
+		out.append("        if (start_line == null) {"
+		out.append("            return \"\";"
+		out.append("        }"
+		out.append("        i = elements.indexOf(start_line[0]);"
+		out.append("        end_line = lines.filter(function(e) {"
+		out.append("            return (e.getAttribute(\"name\") == m);"
+		out.append("        });"
+		out.append("        if (end_line == null) {"
+		out.append("            return \"\";"
+		out.append("        }"
+		out.append("        j = elements.indexOf(end_line[0]);"
+		out.append(""
+		out.append("        line_str = \"\";"
+		out.append("        for (; i < j; i++) {"
+		out.append("            if (elements[i].className != \"l\" && elements[i].className != \"hl\")"
+		out.append("                line_str += elements[i].textContent;"
+		out.append("        }"
+		out.append("        return line_str;"
+		out.append("    }"
+		out.append("    function clean_tabs_spaces(str) {"
+		out.append("        ans = str;"
+		out.append("        while (ans.indexOf(\'\t\') != -1) {"
+		out.append("            ans = ans.replace(\'\t\', \' \');"
+		out.append("        }"
+		out.append("        while (ans.indexOf(\"  \") != -1) {"
+		out.append("            ans = ans.replace(\"  \", \" \");"
+		out.append("        }"
+		out.append("        return ans;"
+		out.append("    }"
+		out.append("    function get_line_number_by_element(e) {"
+		out.append("        x = elements.indexOf(e);"
+		out.append("        if (x == -1)"
+		out.append("            return -1;"
+		out.append("        else {"
+		out.append("            for (i = x; i >= 0; i--) {"
+		out.append("                if (elements[i].className == \"l\" || elements[i].className == \"hl\")"
+		out.append("                    return elements[i].textContent;"
+		out.append("            }"
+		out.append("        }"
+		out.append("        return -1;"
+		out.append("    }"
+		out.append("    d_list = Array.prototype.slice.call(document.getElementsByClassName(\"d\"), 0);"
+		out.append("    sym_lists = get_sym_list();"
+		out.append("    for (d_i in d_list) {"
+		out.append("        if (!d_list[d_i].hasAttribute(\"title\")) {"
+		out.append("            for (list_i in sym_lists) {"
+		out.append("                arr_list = Array.prototype.slice.call(sym_lists[list_i][2], 0);"
+		out.append("                item = arr_list.find(function(e) {"
+		out.append("                    return e[0] == d_list[d_i].innerText;"
+		out.append("                });"
+		out.append("                if (item) {"
+		out.append("                    line = get_text_between_lines(item[1], (parseInt(item[1]) + 1).toString());"
+		out.append("                    console.log(\"Cleaning: \" + line);"
+		out.append("                    line = clean_tabs_spaces(line);"
+		out.append("                    console.log(\"Result: \" + line);"
+		out.append("                    d_list[d_i].setAttribute(\"title\", line != null ? line : \"ERROR\");"
+		out.append("                    break;"
+		out.append("                }"
+		out.append("            }"
+		out.append("            if (!d_list[d_i].hasAttribute(\"title\") && d_list[d_i].href.indexOf(\"#\") != -1) {"
+		out.append("                elem = document.getElementsByName(d_list[d_i].innerText);"
+		out.append("                if (elem.length == 0)"
+		out.append("                    continue;"
+		out.append("                line_number = get_line_number_by_element(elem[0]);"
+		out.append("                line = get_text_between_lines(line_number, (parseInt(line_number) + 1).toString());"
+		out.append("                console.log(\"Cleaning: \" + line);"
+		out.append("                line = clean_tabs_spaces(line);"
+		out.append("                console.log(\"Result: \" + line);"
+		out.append("                d_list[d_i].setAttribute(\"title\", line != null ? line : \"ERROR\");"
+		out.append("            }"
+		out.append("        }"
+		out.append("    }"
+		out.append("})();"
+		
+		
+		out.append("];} /* ]]> */</script>");
+		
     }
 
     /**
